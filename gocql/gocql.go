@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/scylladb/golog"
+	log "github.com/scylladb/golog"
 )
 
 // StdLogger implements github.com/gocql/gocql.StdLogger and writes logs to the
