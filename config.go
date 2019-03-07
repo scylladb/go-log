@@ -125,8 +125,9 @@ func NewDevelopmentWithLevel(level zapcore.Level) Logger {
 	cfg := zap.NewDevelopmentConfig()
 	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	cfg.EncoderConfig.EncodeTime = shortTimeEncoder
+	cfg.EncoderConfig.CallerKey = ""
 	cfg.Level.SetLevel(level)
-	l, _ := cfg.Build(zap.AddCallerSkip(2))
+	l, _ := cfg.Build()
 	return Logger{base: l}
 }
 
