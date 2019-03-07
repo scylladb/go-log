@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/syslog"
 	"os"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -122,7 +123,13 @@ func NewDevelopment() Logger {
 // logs to standard error in a human-friendly format.
 func NewDevelopmentWithLevel(level zapcore.Level) Logger {
 	cfg := zap.NewDevelopmentConfig()
+	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	cfg.EncoderConfig.EncodeTime = shortTimeEncoder
 	cfg.Level.SetLevel(level)
 	l, _ := cfg.Build(zap.AddCallerSkip(2))
 	return Logger{base: l}
+}
+
+func shortTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString(t.Format("15:04:05.000"))
 }
