@@ -20,6 +20,23 @@ func TestWithTraceID(t *testing.T) {
 	}
 }
 
+func TestWithNewTraceID(t *testing.T) {
+	ctx := WithTraceID(context.Background())
+	id := TraceID(ctx)
+	if id == "" {
+		t.Fatal("missing id")
+	}
+
+	newCtx := WithNewTraceID(ctx)
+	newID := TraceID(newCtx)
+	if id == newID {
+		t.Fatal("expected new trace ID")
+	}
+	if newCtx == ctx {
+		t.Fatal("expected new context")
+	}
+}
+
 func TestCopyTraceID(t *testing.T) {
 	from := WithTraceID(context.Background())
 	ctx := context.Background()
