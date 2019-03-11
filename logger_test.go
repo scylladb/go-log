@@ -28,8 +28,8 @@ func TestLogger(t *testing.T) {
 	extra := []interface{}{"baz", false}
 	expectedFields := []zapcore.Field{
 		zap.String("foo", "bar"),
-		zap.Bool("baz", false),
 		zap.String("_trace_id", TraceID(ctx)),
+		zap.Bool("baz", false),
 	}
 
 	for _, test := range table {
@@ -88,7 +88,7 @@ func BenchmarkZapSugared(b *testing.B) {
 
 func BenchmarkLogger(b *testing.B) {
 	ctx := WithTraceID(context.Background())
-	l := Logger{newZapLogger()}
+	l := Logger{base: newZapLogger()}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		l.Debug(ctx, "log message", "key0", 0, "key1", "key1", "key2", "key2")
