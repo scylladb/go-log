@@ -99,4 +99,22 @@ func TestWithFieldsLogger(t *testing.T) {
 			t.Errorf(`expected "key1"=1, got %q=%+v`, flds[0].Key, flds[0].String)
 		}
 	})
+
+	t.Run("field ordering", func(t *testing.T) {
+		ctx := WithTraceID(ctx)
+		withLogger := l.With("key2", "val2")
+		withLogger.Info(ctx, "testing", "key3", "val3")
+		got := o.TakeAll()[0].Context
+
+		expectedFields := []zapcore.Field{
+			zap.String("key2", "val2"),
+			zap.Int("key1", 1),
+			zap.String("key3", "val3"),
+			zap.String("_trace_id", TraceID(ctx)),
+		}
+
+		if diff := cmp.Diff(expectedFields, got); diff != "" {
+			t.Error(diff)
+		}
+	})
 }
