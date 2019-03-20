@@ -28,8 +28,8 @@ func TestLogger(t *testing.T) {
 	extra := []interface{}{"baz", false}
 	expectedFields := []zapcore.Field{
 		zap.String("foo", "bar"),
-		zap.String("_trace_id", TraceID(ctx)),
 		zap.Bool("baz", false),
+		zap.String("_trace_id", TraceID(ctx)),
 	}
 
 	for _, test := range table {
