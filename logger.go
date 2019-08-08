@@ -165,3 +165,8 @@ func containsKey(fields []zapcore.Field, key string) int {
 	}
 	return -1
 }
+
+// BaseOf unwraps l and returns the base zap.Logger.
+func BaseOf(l Logger) *zap.Logger {
+	return l.base
+}
