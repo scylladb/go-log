@@ -32,6 +32,15 @@ func (l Logger) Named(name string) Logger {
 	return Logger{base: l.base.Named(name)}
 }
 
+// WithOptions clones the current Logger, applies the supplied Options, and
+// returns the resulting Logger. It's safe to use concurrently.
+func (l Logger) WithOptions(opts ...zap.Option) Logger {
+	if l.base == nil {
+		return l
+	}
+	return Logger{base: l.base.WithOptions(opts...)}
+}
+
 // With adds a variadic number of fields to the logging context.
 func (l Logger) With(keyvals ...interface{}) Logger {
 	if l.base == nil {
