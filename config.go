@@ -56,8 +56,8 @@ func (m *Mode) UnmarshalText(text []byte) error {
 
 // Config specifies log mode and level.
 type Config struct {
-	Mode  Mode          `yaml:"mode"`
-	Level zapcore.Level `yaml:"level"`
+	Mode  Mode                 `yaml:"mode"`
+	Level zapcore.LevelEnabler `yaml:"level"`
 }
 
 // NewProduction builds a production Logger based on the configuration.
