@@ -47,7 +47,7 @@ func TestWithFields(t *testing.T) {
 	for _, test := range table {
 		t.Run(test.name, func(t *testing.T) {
 			ctx := WithFields(context.Background(), test.keyvals...)
-			flds := Fields(ctx)
+			flds := contextFields(ctx)
 			opts := cmpopts.IgnoreFields(zapcore.Field{}, "Type")
 			if diff := cmp.Diff(test.flds, flds, opts); diff != "" {
 				t.Error(diff)

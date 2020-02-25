@@ -113,7 +113,7 @@ func (l Logger) zapify(ctx context.Context, keyvals []interface{}) []zapcore.Fie
 		if ok {
 			extraFields++
 		}
-		extra = Fields(ctx)
+		extra = contextFields(ctx)
 		extraFields += len(extra)
 	}
 
