@@ -89,12 +89,8 @@ func (l Logger) log(ctx context.Context, lvl zapcore.Level, msg string, keyvals 
 		return
 	}
 
-	fields := l.zapify(ctx, keyvals)
-	if lvl < zapcore.ErrorLevel {
-		stringifyErrors(fields)
-	}
-
 	if ce := l.base.Check(lvl, msg); ce != nil {
+		fields := stringifyErrors(l.zapify(ctx, keyvals), lvl >= zapcore.ErrorLevel)
 		ce.Write(fields...)
 	}
 }

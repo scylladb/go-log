@@ -4,7 +4,6 @@ package log
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -74,12 +73,21 @@ func TestStringifyErrors(t *testing.T) {
 			},
 			{
 				Entry:   zapcore.Entry{Message: "msg", Level: zap.ErrorLevel},
-				Context: []zapcore.Field{zap.Error(err)},
+				Context: []zapcore.Field{zap.String("error", err.Error()), zap.String("errorStack", "github.com/scylladb/go-log.TestStringifyErrors")},
 			},
 		}
 
-		opts := cmp.Comparer(func(a, b error) bool { return fmt.Sprint(a) == fmt.Sprint(b) })
-		if diff := cmp.Diff(expected, logs.AllUntimed(), opts); diff != "" {
+		opt := cmp.Comparer(func(x, y string) bool {
+			if len(x) > 20 {
+				x = x[:20]
+			}
+			if len(y) > 20 {
+				y = y[:20]
+			}
+			return x == y
+		})
+
+		if diff := cmp.Diff(expected, logs.AllUntimed(), opt); diff != "" {
 			t.Error(diff)
 		}
 	})
