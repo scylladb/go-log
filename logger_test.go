@@ -4,9 +4,11 @@ package log
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	pkgErrors "github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
@@ -50,6 +52,37 @@ func TestLogger(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStringifyErrors(t *testing.T) {
+	ctx := context.Background()
+	err := pkgErrors.Wrapf(pkgErrors.New("inner"), "outer")
+
+	withLogger(zap.DebugLevel, nil, func(logger Logger, logs *observer.ObservedLogs) {
+		logger.Debug(ctx, "msg", "error", err)
+		logger.Info(ctx, "msg", "error", err)
+		logger.Error(ctx, "msg", "error", err)
+
+		expected := []observer.LoggedEntry{
+			{
+				Entry:   zapcore.Entry{Message: "msg", Level: zap.DebugLevel},
+				Context: []zapcore.Field{zap.String("error", err.Error())},
+			},
+			{
+				Entry:   zapcore.Entry{Message: "msg", Level: zap.InfoLevel},
+				Context: []zapcore.Field{zap.String("error", err.Error())},
+			},
+			{
+				Entry:   zapcore.Entry{Message: "msg", Level: zap.ErrorLevel},
+				Context: []zapcore.Field{zap.Error(err)},
+			},
+		}
+
+		opts := cmp.Comparer(func(a, b error) bool { return fmt.Sprint(a) == fmt.Sprint(b) })
+		if diff := cmp.Diff(expected, logs.AllUntimed(), opts); diff != "" {
+			t.Error(diff)
+		}
+	})
 }
 
 func withLogger(e zapcore.LevelEnabler, opts []zap.Option, f func(Logger, *observer.ObservedLogs)) {
