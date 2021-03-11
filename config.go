@@ -5,7 +5,6 @@ package log
 import (
 	"errors"
 	"fmt"
-	"log/syslog"
 	"os"
 	"time"
 
@@ -21,9 +20,6 @@ const (
 	StderrMode Mode = iota
 	// StderrMode logs are written to standard output.
 	StdoutMode
-	// SyslogMode logs are written to syslog with priority LOG_DAEMON and
-	// tag os.Args[0].
-	SyslogMode
 )
 
 func (m Mode) String() string {
@@ -32,8 +28,6 @@ func (m Mode) String() string {
 		return "stderr"
 	case StdoutMode:
 		return "stdout"
-	case SyslogMode:
-		return "syslog"
 	}
 
 	return ""
@@ -51,8 +45,6 @@ func (m *Mode) UnmarshalText(text []byte) error {
 		*m = StderrMode
 	case "stdout":
 		*m = StdoutMode
-	case "syslog", "SYSLOG":
-		*m = SyslogMode
 	default:
 		return fmt.Errorf("unrecognized mode: %q", string(text))
 	}
@@ -91,15 +83,6 @@ func NewProduction(c Config, opts ...zap.Option) (Logger, error) {
 		core = zapcore.NewCore(zapcore.NewJSONEncoder(cfg), zapcore.Lock(os.Stderr), c.Level)
 	case StdoutMode:
 		core = zapcore.NewCore(zapcore.NewJSONEncoder(cfg), zapcore.Lock(os.Stdout), c.Level)
-	case SyslogMode:
-		w, err := syslog.New(syslog.LOG_DAEMON, "")
-		if err != nil {
-			return NopLogger, err
-		}
-		// ignore level and time as they will be logged by syslog
-		cfg.LevelKey = ""
-		cfg.TimeKey = ""
-		core = NewSyslogCore(zapcore.NewJSONEncoder(cfg), w, c.Level)
 	default:
 		return NopLogger, errors.New("unrecognized logger mode")
 	}
