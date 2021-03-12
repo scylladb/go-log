@@ -7,12 +7,18 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	pkgErrors "github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
 	"go.uber.org/zap/zaptest/observer"
 )
+
+var diffOpts = cmp.Options{
+	cmpopts.IgnoreTypes(zapcore.EntryCaller{}),
+	cmpopts.IgnoreFields(zapcore.Entry{}, "Stack"),
+}
 
 func TestLogger(t *testing.T) {
 	table := []struct {
@@ -34,7 +40,7 @@ func TestLogger(t *testing.T) {
 	}
 
 	for _, test := range table {
-		withLogger(zap.DebugLevel, nil, func(logger Logger, logs *observer.ObservedLogs) {
+		withLogger(t, Config{Level: zap.NewAtomicLevelAt(zap.DebugLevel)}, func(logger Logger, logs *observer.ObservedLogs) {
 			logger.With(base...).Debug(ctx, test.msg, extra...)
 			logger.With(base...).Info(ctx, test.msg, extra...)
 			logger.With(base...).Error(ctx, test.msg, extra...)
@@ -46,7 +52,7 @@ func TestLogger(t *testing.T) {
 					Context: expectedFields,
 				}
 			}
-			if diff := cmp.Diff(expected, logs.AllUntimed()); diff != "" {
+			if diff := cmp.Diff(expected, logs.AllUntimed(), diffOpts...); diff != "" {
 				t.Error(diff)
 			}
 		})
@@ -57,7 +63,7 @@ func TestStringifyErrors(t *testing.T) {
 	ctx := context.Background()
 	err := pkgErrors.Wrapf(pkgErrors.New("inner"), "outer")
 
-	withLogger(zap.DebugLevel, nil, func(logger Logger, logs *observer.ObservedLogs) {
+	withLogger(t, Config{Level: zap.NewAtomicLevelAt(zap.DebugLevel)}, func(logger Logger, logs *observer.ObservedLogs) {
 		logger.Debug(ctx, "msg", "error", err)
 		logger.Info(ctx, "msg", "error", err)
 		logger.Error(ctx, "msg", "error", err)
@@ -87,16 +93,23 @@ func TestStringifyErrors(t *testing.T) {
 			return x == y
 		})
 
-		if diff := cmp.Diff(expected, logs.AllUntimed(), opt); diff != "" {
+		if diff := cmp.Diff(expected, logs.AllUntimed(), append(diffOpts, opt)); diff != "" {
 			t.Error(diff)
 		}
 	})
 }
 
-func withLogger(e zapcore.LevelEnabler, opts []zap.Option, f func(Logger, *observer.ObservedLogs)) {
-	fac, logs := observer.New(e)
-	logger := zap.New(fac, opts...)
-	f(Logger{base: logger}, logs)
+func withLogger(t *testing.T, c Config, f func(Logger, *observer.ObservedLogs)) {
+	t.Helper()
+
+	fac, logs := observer.New(c.Level)
+	l, err := NewProduction(c, zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(core, fac)
+	}))
+	if err != nil {
+		t.Fatal("NewProduction() error", err)
+	}
+	f(l, logs)
 }
 
 func newZapLogger() *zap.Logger {
