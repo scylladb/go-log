@@ -52,8 +52,9 @@ func (m *Mode) UnmarshalText(text []byte) error {
 
 // Config specifies log mode and level.
 type Config struct {
-	Mode  Mode            `json:"mode" yaml:"mode"`
-	Level zap.AtomicLevel `json:"level" yaml:"level"`
+	Mode     Mode                `json:"mode" yaml:"mode"`
+	Level    zap.AtomicLevel     `json:"level" yaml:"level"`
+	Sampling *zap.SamplingConfig `json:"sampling" yaml:"sampling"`
 }
 
 // NewProduction builds a production Logger based on the configuration.
@@ -76,6 +77,7 @@ func NewProduction(c Config, opts ...zap.Option) (Logger, error) {
 	cfg := zap.NewProductionConfig()
 	cfg.EncoderConfig = enc
 	cfg.OutputPaths = []string{c.Mode.String()}
+	cfg.Sampling = c.Sampling
 	cfg.Level = c.Level
 
 	l, err := cfg.Build(opts...)
