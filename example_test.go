@@ -16,8 +16,9 @@ func TestExample(t *testing.T) {
 
 	atom := zap.NewAtomicLevelAt(zapcore.InfoLevel)
 	logger, err := log.NewProduction(log.Config{
-		Mode:  log.StderrMode,
-		Level: atom,
+		Mode:     log.StderrMode,
+		Level:    atom,
+		Encoding: log.JSONEncoding,
 	})
 	if err != nil {
 		t.Fatal(err)

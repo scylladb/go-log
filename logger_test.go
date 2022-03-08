@@ -40,7 +40,7 @@ func TestLogger(t *testing.T) {
 	}
 
 	for _, test := range table {
-		withLogger(t, Config{Level: zap.NewAtomicLevelAt(zap.DebugLevel)}, func(logger Logger, logs *observer.ObservedLogs) {
+		withLogger(t, Config{Level: zap.NewAtomicLevelAt(zap.DebugLevel), Encoding: JSONEncoding}, func(logger Logger, logs *observer.ObservedLogs) {
 			logger.With(base...).Debug(ctx, test.msg, extra...)
 			logger.With(base...).Info(ctx, test.msg, extra...)
 			logger.With(base...).Error(ctx, test.msg, extra...)
@@ -63,7 +63,7 @@ func TestStringifyErrors(t *testing.T) {
 	ctx := context.Background()
 	err := pkgErrors.Wrapf(pkgErrors.New("inner"), "outer")
 
-	withLogger(t, Config{Level: zap.NewAtomicLevelAt(zap.DebugLevel)}, func(logger Logger, logs *observer.ObservedLogs) {
+	withLogger(t, Config{Level: zap.NewAtomicLevelAt(zap.DebugLevel), Encoding: JSONEncoding}, func(logger Logger, logs *observer.ObservedLogs) {
 		logger.Debug(ctx, "msg", "error", err)
 		logger.Info(ctx, "msg", "error", err)
 		logger.Error(ctx, "msg", "error", err)

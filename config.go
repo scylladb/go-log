@@ -50,11 +50,50 @@ func (m *Mode) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// Encoding specifies log encoding.
+type Encoding int8
+
+const (
+	JSONEncoding Encoding = iota
+	ConsoleEncoding
+)
+
+func (e Encoding) String() string {
+	switch e {
+	case JSONEncoding:
+		return "json"
+	case ConsoleEncoding:
+		return "console"
+	}
+
+	return ""
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (e Encoding) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (e *Encoding) UnmarshalText(text []byte) error {
+	switch string(text) {
+	case "JSON", "json":
+		*e = JSONEncoding
+	case "CONSOLE", "console":
+		*e = ConsoleEncoding
+	default:
+		return fmt.Errorf("unrecognized encoding: %q", string(text))
+	}
+
+	return nil
+}
+
 // Config specifies log mode and level.
 type Config struct {
 	Mode     Mode                `json:"mode" yaml:"mode"`
 	Level    zap.AtomicLevel     `json:"level" yaml:"level"`
 	Sampling *zap.SamplingConfig `json:"sampling" yaml:"sampling"`
+	Encoding Encoding            `json:"encoding" yaml:"encoding"`
 }
 
 // NewProduction builds a production Logger based on the configuration.
@@ -79,6 +118,7 @@ func NewProduction(c Config, opts ...zap.Option) (Logger, error) {
 	cfg.OutputPaths = []string{c.Mode.String()}
 	cfg.Sampling = c.Sampling
 	cfg.Level = c.Level
+	cfg.Encoding = c.Encoding.String()
 	cfg.DisableCaller = true
 
 	l, err := cfg.Build(opts...)
