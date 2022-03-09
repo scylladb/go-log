@@ -75,17 +75,26 @@ func (e Encoding) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (e *Encoding) UnmarshalText(text []byte) error {
-	switch string(text) {
-	case "JSON", "json":
-		*e = JSONEncoding
-	case "CONSOLE", "console":
-		*e = ConsoleEncoding
-	default:
-		return fmt.Errorf("unrecognized encoding: %q", string(text))
-	}
+func (e *Encoding) UnmarshalText(text []byte) (err error) {
+	*e, err = ParseEncoding(string(text))
+	return
+}
 
-	return nil
+// ParseLevel parses an AtomicLevel from a string.
+func ParseLevel(level string) (zap.AtomicLevel, error) {
+	return zap.ParseAtomicLevel(level)
+}
+
+// ParseEncoding parses an Encoding from a string.
+func ParseEncoding(encoding string) (Encoding, error) {
+	switch encoding {
+	case "JSON", "json":
+		return JSONEncoding, nil
+	case "CONSOLE", "console":
+		return ConsoleEncoding, nil
+	default:
+		return 0, fmt.Errorf("unrecognized encoding: %q", encoding)
+	}
 }
 
 // Config specifies log mode and level.
