@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"io"
 
 	"go.uber.org/zap"
@@ -20,6 +21,13 @@ func WithTraceID(ctx context.Context) context.Context {
 	}
 
 	return WithNewTraceID(ctx)
+}
+
+// WithTaggedTraceID returns a new context with a tag prepended to a
+// random trace ID to aid filtering by special contexts.
+func WithTaggedTraceID(ctx context.Context, tag string) context.Context {
+	v := zap.String("_trace_id", fmt.Sprintf("%s_%s", tag, newTraceID()))
+	return context.WithValue(ctx, ctxTraceID, &v)
 }
 
 // WithNewTraceID returns a new context with a random trace ID.
