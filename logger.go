@@ -79,6 +79,11 @@ func (l Logger) Info(ctx context.Context, msg string, keyvals ...interface{}) {
 	l.log(ctx, zapcore.InfoLevel, msg, keyvals)
 }
 
+// Warn logs a message with some additional context.
+func (l Logger) Warn(ctx context.Context, msg string, keyvals ...interface{}) {
+	l.log(ctx, zapcore.WarnLevel, msg, keyvals)
+}
+
 // Error logs a message with some additional context.
 func (l Logger) Error(ctx context.Context, msg string, keyvals ...interface{}) {
 	l.log(ctx, zapcore.ErrorLevel, msg, keyvals)
