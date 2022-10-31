@@ -43,10 +43,11 @@ func TestLogger(t *testing.T) {
 		withLogger(t, Config{Level: zap.NewAtomicLevelAt(zap.DebugLevel), Encoding: JSONEncoding}, func(logger Logger, logs *observer.ObservedLogs) {
 			logger.With(base...).Debug(ctx, test.msg, extra...)
 			logger.With(base...).Info(ctx, test.msg, extra...)
+			logger.With(base...).Warn(ctx, test.msg, extra...)
 			logger.With(base...).Error(ctx, test.msg, extra...)
 
-			expected := make([]observer.LoggedEntry, 3)
-			for i, lvl := range []zapcore.Level{zap.DebugLevel, zap.InfoLevel, zap.ErrorLevel} {
+			expected := make([]observer.LoggedEntry, 4)
+			for i, lvl := range []zapcore.Level{zap.DebugLevel, zap.InfoLevel, zap.WarnLevel, zap.ErrorLevel} {
 				expected[i] = observer.LoggedEntry{
 					Entry:   zapcore.Entry{Message: test.expectMsg, Level: lvl},
 					Context: expectedFields,
@@ -66,6 +67,7 @@ func TestStringifyErrors(t *testing.T) {
 	withLogger(t, Config{Level: zap.NewAtomicLevelAt(zap.DebugLevel), Encoding: JSONEncoding}, func(logger Logger, logs *observer.ObservedLogs) {
 		logger.Debug(ctx, "msg", "error", err)
 		logger.Info(ctx, "msg", "error", err)
+		logger.Warn(ctx, "msg", "error", err)
 		logger.Error(ctx, "msg", "error", err)
 
 		expected := []observer.LoggedEntry{
@@ -75,6 +77,10 @@ func TestStringifyErrors(t *testing.T) {
 			},
 			{
 				Entry:   zapcore.Entry{Message: "msg", Level: zap.InfoLevel},
+				Context: []zapcore.Field{zap.String("error", err.Error())},
+			},
+			{
+				Entry:   zapcore.Entry{Message: "msg", Level: zap.WarnLevel},
 				Context: []zapcore.Field{zap.String("error", err.Error())},
 			},
 			{
