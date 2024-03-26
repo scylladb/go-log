@@ -99,10 +99,11 @@ func ParseEncoding(encoding string) (Encoding, error) {
 
 // Config specifies log mode and level.
 type Config struct {
-	Mode     Mode                `json:"mode" yaml:"mode"`
-	Level    zap.AtomicLevel     `json:"level" yaml:"level"`
-	Sampling *zap.SamplingConfig `json:"sampling" yaml:"sampling"`
-	Encoding Encoding            `json:"encoding" yaml:"encoding"`
+	Mode               Mode                `json:"mode" yaml:"mode"`
+	Level              zap.AtomicLevel     `json:"level" yaml:"level"`
+	Sampling           *zap.SamplingConfig `json:"sampling" yaml:"sampling"`
+	Encoding           Encoding            `json:"encoding" yaml:"encoding"`
+	DisableStackTraces bool                `json:"disable_stack_traces" yaml:"disable_stack_traces"`
 }
 
 // NewProduction builds a production Logger based on the configuration.
@@ -129,6 +130,7 @@ func NewProduction(c Config, opts ...zap.Option) (Logger, error) {
 	cfg.Level = c.Level
 	cfg.Encoding = c.Encoding.String()
 	cfg.DisableCaller = true
+	cfg.DisableStacktrace = c.DisableStackTraces
 
 	l, err := cfg.Build(opts...)
 	if err != nil {
